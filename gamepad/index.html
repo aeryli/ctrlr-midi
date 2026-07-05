@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Steam Controller Remote Control</title>
+  <meta name="description" content="Drive your Steam Controller like an RC car — right from the browser over WebHID.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Steam Controller Remote Control">
+  <meta property="og:description" content="Drive your Steam Controller like an RC car — right from the browser over WebHID.">
+  <meta property="og:image" content="./og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="628">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Steam Controller Remote Control">
+  <meta name="twitter:description" content="Drive your Steam Controller like an RC car — right from the browser over WebHID.">
+  <meta name="twitter:image" content="./og-image.jpg">
+
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='11' fill='%23fff'/><text x='12' y='12.3' text-anchor='middle' dominant-baseline='central' font-family='Archivo,sans-serif' font-weight='700' font-size='13.5' letter-spacing='-.5' fill='%23171a21'>03</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="/assets/index-yNiLXU3c.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-B8A4FBCd.css">
+</head>
+
+<body>
+
+  <meta name="hope" content="HOPE" hidden>
+  <header class="masthead">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="11" fill="currentColor" />
+          <text x="12" y="12.3" text-anchor="middle" dominant-baseline="central"
+            font-family="'Archivo', sans-serif" font-weight="700" font-size="13.5"
+            letter-spacing="-.5" fill="#171a21">03</text>
+        </svg>
+      </span>
+      <div class="brand-text">
+        <h1 data-i18n="app.title">Steam Controller Remote Control</h1>
+      </div>
+    </div>
+    <div id="conn-chip" class="chip" hidden>
+      <span class="dot"></span><span id="conn-chip-text" data-i18n="chip.linked">linked</span>
+    </div>
+  </header>
+  <div class="checker" aria-hidden="true"></div>
+
+  <main>
+
+    <!-- state 1 · WebHID unavailable -->
+    <section id="screen-unsupported" class="screen" hidden>
+      <img class="hero" src="./hero_sad.png" alt="" aria-hidden="true">
+      <h2 data-i18n="unsupported.title">Unfortunately your device is not supported</h2>
+      <p class="lede" data-i18n-html="unsupported.lede">This page drives the Steam Controller over WebHID, which this browser doesn't
+        provide.<br>
+        Open it in <strong>Chrome, Edge, or another Chromium-based browser</strong> to take the wheel.</p>
+    </section>
+
+    <!-- state 2 · supported; nothing linked ('unlinked') or unplugged ('absent').
+         Copy is swapped at runtime by renderState(); data-i18n holds the
+         unlinked defaults for pre-JS / crawlable rendering. -->
+    <section id="screen-connect" class="screen" hidden>
+      <img class="hero" src="./hero.png" width="681" height="322" alt="" aria-hidden="true">
+      <h2 id="connect-title" data-i18n="connect.title">Link your controller</h2>
+      <p id="connect-lede" class="lede" data-i18n-html="connect.lede">This page turns the Steam Controller into a tiny RC car by pulsing its
+        rumble motors — the browser just needs your permission to talk to it first.</p>
+      <button id="btn-connect" class="btn-cta" type="button" data-i18n="connect.button">Link the controller</button>
+      <p id="connect-hint" class="hint" data-i18n-html="connect.hint">Click <strong>Link the controller</strong> and
+        choose <strong>“Steam Controller”</strong><br>in your browser's device picker.</p>
+      <p id="connect-status" class="connect-status" role="status"></p>
+    </section>
+
+    <!-- state 3 · linked, but controller powered off -->
+    <section id="screen-await" class="screen" hidden>
+      <img class="hero" src="./hero.png" width="681" height="322" alt="" aria-hidden="true">
+      <h2 data-i18n="await.title">Turn on your controller</h2>
+      <p class="lede" data-i18n-html="await.lede">Your Steam Controller is linked but powered off.<br>Switch it on (or plug in its
+        wireless puck) and driving unlocks automatically.</p>
+    </section>
+
+    <!-- state 4 · connected, driving -->
+    <section id="screen-drive" class="screen" hidden>
+      <img class="hero" src="./hero.png" width="681" height="322" alt="" aria-hidden="true">
+      <div class="drive-stack">
+        <div class="cluster">
+          <div class="cluster-row">
+            <button class="key" data-action="forward" type="button">W<span class="sub"
+                data-i18n="drive.fwd">fwd</span></button>
+          </div>
+          <div class="cluster-row">
+            <button class="key" data-action="left" type="button">A<span class="sub"
+                data-i18n="drive.left">left</span></button>
+            <button class="key" type="button" disabled title="Reverse is not supported"
+              data-i18n-title="drive.noReverseTitle">S<span class="sub" data-i18n="drive.na">n/a</span></button>
+            <button class="key" data-action="right" type="button">D<span class="sub"
+                data-i18n="drive.right">right</span></button>
+          </div>
+        </div>
+                  <p class="no-reverse" data-i18n="drive.noReverse">no reverse on this car</p>
+        <button id="btn-estop" class="key key-stop" type="button" title="Emergency stop (Space)"
+          data-i18n-title="drive.stopTitle">
+          <span data-i18n="drive.stop">STOP</span><span class="sub" data-i18n="drive.stopSub">space · in case of
+            emergency</span>
+        </button>
+        <div class="driving">
+          <p class="drive-caption" data-i18n-html="drive.caption">Use <strong>WASD</strong> or the arrow keys to drive
+          </p>
+        </div>
+        <button id="drive-music" class="btn-cta btn-cta-ghost" type="button" data-i18n="drive.playMusic">Play some
+          music</button>
+        <div class="panel" hidden>
+          <span class="panel-label" data-i18n="drive.speedLabel">Speed</span>
+          <div class="speed-controls">
+            <button id="speed-dec" class="key key-small" type="button" title="Slower (−)"
+              data-i18n-title="drive.slowerTitle">−</button>
+            <div class="speed-readout"><span id="speed-value">100</span><small>%</small></div>
+            <button id="speed-inc" class="key key-small" type="button" title="Faster (+)"
+              data-i18n-title="drive.fasterTitle">+</button>
+          </div>
+          <div id="speed-meter" class="speed-meter" aria-hidden="true"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- state 4b · connected, music player mode (sibling of screen-drive) -->
+    <section id="screen-player" class="screen" hidden>
+      <img id="player-hero" class="hero" src="./hero_audio.png" width="681" height="322" alt="" aria-hidden="true">
+      <div class="player-stack">
+        <p class="player-notice" data-i18n-html="player.notice">For the best MIDI playback experience, please
+          visit the original inspiration for this project — <a
+            href="https://github.com/CrazyCritic89/SteamHapticsSinger" target="_blank"
+            rel="noopener noreferrer">Steam Haptics Singer</a>.</p>
+
+        <!-- Player UI hidden behind the notice; revealed by the hero easter egg
+             (see ui.js). display:contents keeps these in .player-stack's flow so
+             the layout matches the pre-notice version once shown. -->
+        <div class="player-controls" hidden>
+          <input id="midi-file" type="file" accept=".mid,.midi,audio/midi" hidden>
+          <button id="midi-pick" class="btn-cta btn-cta-sm" type="button" data-i18n="player.pick">Choose a MIDI
+            file</button>
+          <p id="player-now" class="player-now" role="status" data-i18n="player.noFile">No file loaded yet</p>
+          <p id="player-warn" class="player-warn" role="status" hidden></p>
+          <div class="player-transport">
+            <button id="player-play" class="key key-play key-transport" type="button" disabled>
+              <span aria-hidden="true">▶</span><span class="sub" data-i18n="player.play">play</span>
+            </button>
+            <button id="player-stop" class="key key-stop key-transport" type="button" disabled>
+              <span aria-hidden="true">■</span><span class="sub" data-i18n="player.stop">stop</span>
+            </button>
+          </div>
+          <p class="no-reverse" data-i18n="player.hapticNote">notes are played through the controller's haptics — it
+            won't drive in this mode</p>
+        </div>
+        <button id="player-back" class="btn-cta btn-cta-ghost" type="button" data-i18n="player.back">Drive
+          around</button>
+      </div>
+    </section>
+
+  </main>
+
+  <aside id="dev-drawer" hidden aria-label="Developer tools" data-i18n-label="dev.drawerLabel"></aside>
+
+  <footer>
+    <p class="disclaimer" data-i18n-html="footer.disclaimer">Provided as-is with <strong>no
+        warranty</strong> — we are
+      not responsible for any damage to your controller or anything it drives into. Driving rubs the
+      controller against the floor and will cause wear and tear; perfectly flat, smooth surfaces are
+      preferable. Drive safely and obey all living-room traffic laws — always yield to scientists
+      and pet headcrabs.</p>
+    <p class="credit" data-i18n-html="footer.credit">Heavily inspired by <a
+        href="https://github.com/CrazyCritic89/SteamHapticsSinger" target="_blank"
+        rel="noopener noreferrer">Steam Haptics Singer</a><br>by Pila, CrazyCritic89 &amp; AAGaming ·
+      <a href="/NOTICE.txt" target="_blank" rel="noopener noreferrer">license</a>.</p>
+    <button id="dev-link" class="dev-link" type="button" title="Developer tools (m)"
+      data-i18n-title="footer.devLinkTitle" data-i18n="footer.devLink">dev</button>
+  </footer>
+
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"f197da3d7d3f4a5782d1d03944b481b2","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+
+</html>
